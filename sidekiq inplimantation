@@ -1,0 +1,65 @@
+In GEM file 
+	gem 'sidekiq_alive'
+	gem 'sidekiq', '~> 6.1.0'
+	gem 'yabeda-sidekiq'
+	gem 'sidekiq-cron', '~> 1.7'	
+	gem 'redis', '~> 4.2.0'
+	
+In worker folder worker
+
+module BxBlockRentPayment
+  class RentPaymentWorker
+    include Sidekiq::Worker
+  
+    def perform(*arge)
+      @user = AccountBlock::Account.second
+      BxBlockEmailnotifications::NotificationMailer.with(user: @user, conntent: "this mail is content for meeting shaduling",).resident_notification_email.deliver_now
+    end
+  end
+end	
+
+----------------------------------------
+
+sidekiq .rb 
+
+schedule_file = "config/schedule.yml"
+if File.exist?(schedule_file) && Sidekiq.server?
+   Sidekiq::Cron::Job.load_from_hash YAML.load_file(schedule_file)
+end
+
+if Rails.env == "production"
+  Sidekiq.configure_server do |config|
+    config.redis = { url: ENV['REDIS_URL'] }
+  end
+
+  Sidekiq.configure_client do |config|
+    config.redis = { url: ENV['REDIS_URL'] }
+  end
+else
+  Sidekiq.configure_server do |config|
+    config.redis = {url: 'redis://localhost:6379/0'}
+  end
+
+  Sidekiq.configure_client do |config|
+    config.redis = {url: 'redis://localhost:6379/0'}
+  end
+end
+
+---------------------------------------------
+
+schdule.yml 
+
+my_first_job:
+   cron: "*/1 * * * *"
+   class: "BxBlockContract::ContractStatusWorker"
+
+my_second_job:   
+   cron: "*/1 * * * *"
+   class: "BxBlockRentPayment::RentPaymentWorker"
+   
+----------------------------------------------
+
+
+
+
+	
