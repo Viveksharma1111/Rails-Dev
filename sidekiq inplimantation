@@ -59,7 +59,11 @@ my_second_job:
    
 ----------------------------------------------
 
+Enable sidekiq on server 
 
+values-prod.yml
 
+-  enabled: true
++  enabled: false
 
 	
